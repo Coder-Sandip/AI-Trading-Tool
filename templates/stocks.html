@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1,maximum-scale=1">
+
+<title>AI Trading Tool</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
+}
+
+body{
+background:#0b1018;
+font-family:Segoe UI,sans-serif;
+color:white;
+overflow-x:hidden;
+line-height:1.5;
+}
+
+body::-webkit-scrollbar{
+width:8px;
+}
+body::-webkit-scrollbar-thumb{
+background:#304254;
+border-radius:20px;
+}
+
+a{
+text-decoration:none;
+color:#00ffd0;
+font-weight:700;
+}
+
+
+/* ========= NAVBAR ========= */
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:16px 24px;
+background:#101722;
+border-bottom:1px solid #1f2c38;
+position:sticky;
+top:0;
+z-index:999;
+flex-wrap:wrap;
+gap:14px;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.logo-circle{
+width:46px;
+height:46px;
+border-radius:50%;
+background:linear-gradient(135deg,#00ffd0,#5b7dff);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+font-weight:900;
+color:#07131d;
+box-shadow:0 0 16px rgba(0,255,208,.35);
+flex-shrink:0;
+}
+
+.brand-text{
+display:flex;
+flex-direction:column;
+line-height:1.1;
+}
+
+.brand-text .title{
+font-size:24px;
+font-weight:900;
+color:#00ffd0;
+}
+
+.brand-text .sub{
+font-size:12px;
+opacity:.75;
+letter-spacing:1px;
+}
+
+.back-btn{
+background:#172332;
+padding:11px 18px;
+border-radius:30px;
+white-space:nowrap;
+}
+
+
+/* ========= LAYOUT ========= */
+
+.container{
+display:flex;
+min-height:100vh;
+}
+
+.left{
+width:33%;
+padding:20px;
+border-right:1px solid #202a36;
+}
+
+.right{
+width:67%;
+padding:20px;
+}
+
+
+/* ========= CARD ========= */
+
+.card{
+background:#121b27;
+padding:22px;
+border-radius:18px;
+margin-bottom:20px;
+border:1px solid #202b38;
+box-shadow:0 0 18px rgba(0,0,0,.15);
+}
+
+h2,h3{
+margin-bottom:16px;
+}
+
+
+/* ========= SEARCH ========= */
+
+.search-box{
+display:flex;
+gap:12px;
+}
+
+input{
+flex:1;
+padding:15px;
+border:none;
+outline:none;
+background:#0f1722;
+border-radius:12px;
+color:white;
+font-size:16px;
+border:1px solid rgba(0,255,208,.2);
+}
+
+button{
+padding:15px 18px;
+border:none;
+border-radius:12px;
+background:#00ffd0;
+font-weight:800;
+cursor:pointer;
+font-size:15px;
+transition:.2s;
+}
+
+button:hover{
+transform:translateY(-1px);
+}
+
+
+/* ========= METRICS ========= */
+
+.metric{
+display:flex;
+justify-content:space-between;
+margin:13px 0;
+gap:10px;
+}
+
+.buy{color:#00ff90;}
+.sell{color:#ff6767;}
+
+.signal{
+margin-top:15px;
+font-size:22px;
+font-weight:700;
+}
+
+.bar{
+height:10px;
+background:#1f2632;
+border-radius:30px;
+margin-top:16px;
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+background:linear-gradient(90deg,#00ffd0,#567cff);
+}
+
+.level{
+display:inline-block;
+padding:9px 14px;
+margin:6px;
+background:#1b2531;
+border-radius:30px;
+font-size:14px;
+}
+
+.zone{
+background:#17222f;
+padding:14px;
+border-radius:12px;
+margin-top:12px;
+}
+
+.breakout{
+margin-top:14px;
+padding:12px;
+background:#17222f;
+border-radius:12px;
+font-weight:700;
+}
+
+
+/* ========= CHART ========= */
+
+.chart-wrap{
+background:#091421;
+padding:12px;
+border-radius:18px;
+min-height:520px;
+overflow:auto;
+}
+
+.plotly-graph-div{
+width:100%!important;
+min-width:100%!important;
+}
+
+.analysis-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:14px;
+margin-top:18px;
+}
+
+.analysis-box{
+background:#17222f;
+padding:16px;
+border-radius:14px;
+text-align:center;
+}
+
+.analysis-box small{
+display:block;
+opacity:.7;
+margin-bottom:8px;
+}
+
+
+/* ========= SWOT ========= */
+
+.swot-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:16px;
+}
+
+.swot-box{
+background:#17222f;
+padding:18px;
+border-radius:16px;
+}
+
+.swot-box li{
+margin:10px 0;
+}
+
+
+/* ========= NEWS ========= */
+
+.news-title{
+font-size:20px;
+font-weight:700;
+line-height:1.4;
+margin-bottom:12px;
+}
+
+.desc{
+line-height:1.7;
+color:#bcbcbc;
+margin-bottom:14px;
+}
+
+.badge{
+display:inline-block;
+padding:8px 14px;
+border-radius:30px;
+background:#1b2531;
+font-weight:700;
+}
+
+
+/* ========= TABLET ========= */
+
+@media(max-width:1100px){
+
+.container{
+flex-direction:column;
+}
+
+.left,.right{
+width:100%;
+border:none;
+padding:18px;
+}
+
+.analysis-grid{
+grid-template-columns:1fr 1fr;
+}
+
+.swot-grid{
+grid-template-columns:1fr 1fr;
+}
+
+}
+
+
+/* ========= MOBILE ========= */
+
+@media(max-width:768px){
+
+.navbar{
+padding:14px 16px;
+}
+
+.logo-circle{
+width:40px;
+height:40px;
+font-size:20px;
+}
+
+.brand-text .title{
+font-size:19px;
+}
+
+.brand-text .sub{
+font-size:10px;
+}
+
+.left,.right{
+padding:14px;
+}
+
+.card{
+padding:18px;
+}
+
+.search-box{
+flex-direction:column;
+}
+
+button{
+width:100%;
+}
+
+input{
+width:100%;
+}
+
+.analysis-grid,
+.swot-grid{
+grid-template-columns:1fr;
+}
+
+.chart-wrap{
+padding:8px;
+min-height:360px;
+}
+
+.level{
+display:block;
+text-align:center;
+margin:8px 0;
+}
+
+.metric{
+font-size:15px;
+}
+
+.signal{
+font-size:18px;
+}
+
+.news-title{
+font-size:18px;
+}
+
+}
+
+
+/* SMALL PHONES */
+
+@media(max-width:480px){
+
+.navbar{
+justify-content:center;
+}
+
+.brand{
+width:100%;
+justify-content:center;
+}
+
+.back-btn{
+width:100%;
+text-align:center;
+}
+
+body{
+font-size:14px;
+}
+
+h2{
+font-size:20px;
+}
+
+h3{
+font-size:17px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- TOP NAV -->
+<div class="navbar">
+
+<div class="brand">
+
+<div class="logo-circle">
+S
+</div>
+
+<div class="brand-text">
+<div class="title">
+AI Trading Tool
+</div>
+
+<div class="sub">
+SMART STOCK ANALYZER
+</div>
+</div>
+
+</div>
+
+
+<a href="/" class="back-btn">
+⬅ Dashboard
+</a>
+
+</div>
+
+
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="left">
+
+<div class="card">
+<h3>Search Stock</h3>
+
+<form action="/stocks">
+<div class="search-box">
+
+<input
+name="search"
+value="{{symbol}}"
+placeholder="TCS / INFY / RELIANCE">
+
+<button>
+Analyze
+</button>
+
+</div>
+</form>
+</div>
+
+
+<div class="card">
+<h3>Stock Info</h3>
+
+<div class="metric">
+<span>Price</span>
+<b>₹{{price}}</b>
+</div>
+
+<div class="metric">
+<span>RSI</span>
+<b>{{rsi}}</b>
+</div>
+
+<div class="metric">
+<span>Trend</span>
+<b>{{trend}}</b>
+</div>
+
+<div class="signal">
+{{prediction}}
+</div>
+</div>
+
+
+<div class="card">
+<h3>AI Confidence</h3>
+
+<div class="bar">
+<div class="fill"
+style="width:{{[((confidence|default(0)+5)*10),100]|min}}%">
+</div>
+</div>
+
+</div>
+
+
+<div class="card">
+<h3>Trade Setup</h3>
+
+<p>
+Entry:
+<span class="buy">
+₹{{entry}}
+</span>
+</p>
+
+<p style="margin-top:12px">
+SL:
+<span class="sell">
+₹{{sl}}
+</span>
+</p>
+
+<p style="margin-top:12px">
+Target:
+<span class="buy">
+₹{{target}}
+</span>
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Support</h3>
+
+{% for s in support %}
+<span class="level buy">
+₹{{s}}
+</span>
+{% endfor %}
+
+<hr style="margin:18px 0;border-color:#263544">
+
+<h3>Resistance</h3>
+
+{% for r in resistance %}
+<span class="level sell">
+₹{{r}}
+</span>
+{% endfor %}
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Order Blocks</h3>
+
+<div class="zone">
+Demand:
+<b class="buy">
+₹{{demand_block}}
+</b>
+</div>
+
+<div class="zone">
+Supply:
+<b class="sell">
+₹{{supply_block}}
+</b>
+</div>
+
+<div class="breakout">
+{{breakout}}
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- RIGHT -->
+<div class="right">
+
+<div class="card">
+
+<h2>Smart Money Chart</h2>
+
+<div class="chart-wrap">
+{{chart_html|safe}}
+</div>
+
+
+<div class="analysis-grid">
+
+<div class="analysis-box">
+<small>Signal</small>
+<b>{{prediction}}</b>
+</div>
+
+<div class="analysis-box">
+<small>Breakout</small>
+<b>{{breakout}}</b>
+</div>
+
+<div class="analysis-box">
+<small>Trend</small>
+<b>{{trend}}</b>
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h2>Stock SWOT</h2>
+
+<div class="swot-grid">
+
+<div class="swot-box">
+<h3 class="buy">Strengths</h3>
+<ul>
+{% for i in swot.strengths %}
+<li>{{i}}</li>
+{% endfor %}
+</ul>
+</div>
+
+<div class="swot-box">
+<h3 class="sell">Weaknesses</h3>
+<ul>
+{% for i in swot.weaknesses %}
+<li>{{i}}</li>
+{% endfor %}
+</ul>
+</div>
+
+<div class="swot-box">
+<h3>Opportunities</h3>
+<ul>
+{% for i in swot.opportunities %}
+<li>{{i}}</li>
+{% endfor %}
+</ul>
+</div>
+
+<div class="swot-box">
+<h3>Threats</h3>
+<ul>
+{% for i in swot.threats %}
+<li>{{i}}</li>
+{% endfor %}
+</ul>
+</div>
+
+</div>
+
+</div>
+
+
+
+<h2 style="margin-bottom:20px">
+📰 Stock News
+</h2>
+
+{% for article in news %}
+
+<div class="card">
+
+<div class="news-title">
+{{article.title}}
+</div>
+
+<div class="desc">
+{{article.description}}
+</div>
+
+{% if alerts|length > loop.index0 %}
+<div class="badge">
+{{alerts[loop.index0]}}
+</div>
+{% endif %}
+
+<br><br>
+
+<a href="{{article.url}}" target="_blank">
+Read full article →
+</a>
+
+</div>
+
+{% endfor %}
+
+</div>
+</div>
+
+
+<script>
+window.addEventListener("resize",function(){
+if(window.Plotly){
+document.querySelectorAll(".js-plotly-plot").forEach(function(g){
+Plotly.Plots.resize(g);
+});
+}
+});
+</script>
+
+</body>
+</html>
