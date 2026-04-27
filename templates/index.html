@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1">
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
 <title>AI Trading Tool</title>
 
@@ -16,71 +17,82 @@ box-sizing:border-box;
 -webkit-tap-highlight-color:transparent;
 }
 
+html{
+font-size:16px;
+}
+
 body{
+min-height:100vh;
+min-height:100dvh;
 background:linear-gradient(135deg,#081019,#101a2b,#081019);
 background-size:400% 400%;
 animation:bgMove 14s ease infinite;
 font-family:Segoe UI,sans-serif;
-min-height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-padding:20px;
-overflow:hidden;
+padding:
+max(16px,env(safe-area-inset-top))
+16px
+max(16px,env(safe-area-inset-bottom));
+overflow-x:hidden;
 color:white;
+position:relative;
 }
 
-/* animated gradient bg */
+/* animated background */
 @keyframes bgMove{
 0%{background-position:0% 50%}
 50%{background-position:100% 50%}
 100%{background-position:0% 50%}
 }
 
-/* floating particles */
+/* floating glow orbs */
 body:before,
 body:after{
 content:"";
 position:fixed;
-width:300px;
-height:300px;
+width:260px;
+height:260px;
 border-radius:50%;
 filter:blur(80px);
-opacity:.18;
+opacity:.16;
 z-index:0;
 animation:floatOrb 8s infinite ease-in-out;
+pointer-events:none;
 }
 
 body:before{
 background:#00ffd0;
-top:-80px;
-left:-60px;
+top:-70px;
+left:-70px;
 }
 
 body:after{
 background:#567cff;
-bottom:-100px;
-right:-50px;
+bottom:-90px;
+right:-70px;
 animation-delay:2s;
 }
 
 @keyframes floatOrb{
 50%{
-transform:translateY(40px) scale(1.08);
+transform:translateY(35px) scale(1.08);
 }
 }
 
-/* ---------- BRAND TOP ---------- */
 
+/* BRAND */
 .brand-wrap{
-position:absolute;
-top:22px;
-left:20px;
+position:fixed;
+top:18px;
+left:18px;
 display:flex;
 align-items:center;
-gap:14px;
+gap:12px;
 z-index:5;
 animation:slideIn .8s ease;
+max-width:calc(100vw - 30px);
 }
 
 @keyframes slideIn{
@@ -97,56 +109,56 @@ transform:none;
 .logo-circle{
 width:54px;
 height:54px;
+flex-shrink:0;
 border-radius:50%;
 background:linear-gradient(135deg,#00ffd0,#567cff);
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:28px;
+font-size:1.7rem;
 font-weight:900;
 color:#081019;
-box-shadow:
-0 0 25px rgba(0,255,208,.45);
+box-shadow:0 0 25px rgba(0,255,208,.45);
 animation:pulse 2.4s infinite;
 }
 
 @keyframes pulse{
 50%{
-transform:scale(1.06);
-box-shadow:
-0 0 38px rgba(0,255,208,.7);
+transform:scale(1.05);
+box-shadow:0 0 38px rgba(0,255,208,.65);
 }
 }
 
 .brand-text h2{
-font-size:28px;
+font-size:1.7rem;
 font-weight:800;
-color:#00ffd0;
 line-height:1.1;
+color:#00ffd0;
 }
 
 .brand-text p{
-font-size:13px;
+font-size:.82rem;
 opacity:.8;
 margin-top:4px;
+line-height:1.4;
 }
 
-/* ---------- MAIN CARD ---------- */
 
+/* MAIN CARD */
 .box{
 position:relative;
 z-index:2;
 width:100%;
-max-width:650px;
+max-width:680px;
 text-align:center;
 background:rgba(18,27,39,.95);
-backdrop-filter:blur(12px);
-padding:65px 45px;
+backdrop-filter:blur(14px);
+padding:70px 46px 55px;
 border-radius:32px;
-box-shadow:
-0 0 45px rgba(0,0,0,.45);
+box-shadow:0 0 50px rgba(0,0,0,.45);
 border:1px solid rgba(0,255,208,.12);
 animation:upFloat 1s ease;
+margin-top:50px;
 }
 
 @keyframes upFloat{
@@ -162,19 +174,19 @@ transform:none;
 
 .hero-badge{
 display:inline-block;
-padding:10px 20px;
+padding:11px 20px;
 background:#17222f;
 border-radius:50px;
 color:#00ffd0;
 font-weight:700;
-margin-bottom:25px;
-font-size:14px;
+margin-bottom:26px;
+font-size:.95rem;
 }
 
 h1{
-font-size:48px;
-margin-bottom:18px;
+font-size:clamp(2.1rem,5vw,3.3rem);
 line-height:1.15;
+margin-bottom:18px;
 }
 
 h1 span{
@@ -182,32 +194,36 @@ color:#00ffd0;
 }
 
 .subtitle{
-max-width:520px;
+max-width:540px;
 margin:auto;
-opacity:.82;
 line-height:1.8;
-font-size:18px;
-margin-bottom:42px;
+opacity:.85;
+font-size:clamp(1rem,2vw,1.15rem);
+margin-bottom:40px;
 }
 
-/* buttons */
 
+/* Buttons */
 .menu{
 display:flex;
 flex-direction:column;
-gap:24px;
+gap:22px;
 }
 
 a.action{
 display:block;
 padding:24px;
 border-radius:22px;
-font-size:28px;
+font-size:clamp(1.2rem,4vw,1.8rem);
 font-weight:800;
 text-decoration:none;
 transition:.25s;
 position:relative;
 overflow:hidden;
+min-height:74px;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
 .stock{
@@ -223,6 +239,10 @@ color:white;
 a.action:hover{
 transform:translateY(-4px) scale(1.02);
 box-shadow:0 0 30px rgba(0,255,208,.22);
+}
+
+a.action:active{
+transform:scale(.98);
 }
 
 a.action:before{
@@ -243,8 +263,10 @@ left:150%;
 }
 }
 
+
+/* Stats */
 .stats{
-margin-top:40px;
+margin-top:38px;
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:18px;
@@ -252,59 +274,86 @@ gap:18px;
 
 .stat{
 background:#17222f;
-padding:18px;
+padding:20px 14px;
 border-radius:18px;
 }
 
 .stat h3{
-font-size:28px;
+font-size:1.9rem;
 color:#00ffd0;
 margin-bottom:8px;
 }
 
 .stat p{
+font-size:.95rem;
 opacity:.75;
-font-size:14px;
 }
 
-/* ---------- MOBILE ---------- */
 
-@media(max-width:768px){
+/* ---------------- TABLET ---------------- */
+
+@media (max-width:900px){
+
+.box{
+max-width:95%;
+padding:60px 28px 45px;
+}
+
+.stats{
+gap:14px;
+}
+
+}
+
+
+/* ---------------- MOBILE ---------------- */
+
+@media (max-width:768px){
+
+body{
+align-items:flex-start;
+padding-top:95px;
+}
 
 .brand-wrap{
-left:15px;
-top:15px;
+top:12px;
+left:12px;
 gap:10px;
 }
 
 .logo-circle{
 width:46px;
 height:46px;
-font-size:24px;
+font-size:1.4rem;
 }
 
 .brand-text h2{
-font-size:22px;
+font-size:1.35rem;
+}
+
+.brand-text p{
+font-size:.72rem;
 }
 
 .box{
-padding:50px 22px 35px;
-border-radius:26px;
-margin-top:65px;
+margin-top:15px;
+padding:48px 22px 32px;
+border-radius:24px;
 }
 
-h1{
-font-size:34px;
+.hero-badge{
+font-size:.8rem;
+padding:9px 15px;
 }
 
 .subtitle{
-font-size:15px;
-margin-bottom:30px;
+font-size:.95rem;
+line-height:1.7;
 }
 
 a.action{
-font-size:22px;
-padding:20px;
+padding:18px;
+border-radius:18px;
 }
 
 .stats{
@@ -312,20 +361,72 @@ grid-template-columns:1fr;
 gap:14px;
 }
 
+.stat{
+padding:18px;
 }
 
-@media(max-width:480px){
+}
+
+
+/* extra small phones */
+@media (max-width:480px){
+
+html{
+font-size:15px;
+}
+
+body{
+padding-left:12px;
+padding-right:12px;
+}
+
+.box{
+padding:42px 18px 28px;
+}
 
 h1{
-font-size:30px;
+font-size:1.95rem;
+}
+
+.subtitle{
+font-size:.92rem;
 }
 
 a.action{
-font-size:20px;
+font-size:1.1rem;
+min-height:64px;
+}
+
+.brand-text h2{
+font-size:1.15rem;
+}
+
+.brand-text p{
+display:none;
+}
+
+.logo-circle{
+width:42px;
+height:42px;
+}
+
+}
+
+
+/* ultra small devices */
+@media (max-width:360px){
+
+h1{
+font-size:1.75rem;
+}
+
+a.action{
+font-size:1rem;
+padding:15px;
 }
 
 .hero-badge{
-font-size:12px;
+font-size:.72rem;
 }
 
 }
@@ -335,7 +436,7 @@ font-size:12px;
 <body>
 
 
-<!-- TOP BRAND -->
+<!-- BRAND -->
 <div class="brand-wrap">
 
 <div class="logo-circle">
@@ -381,6 +482,7 @@ all in one dashboard.
 </a>
 
 </div>
+
 
 
 <div class="stats">

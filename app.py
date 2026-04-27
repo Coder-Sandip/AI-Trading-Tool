@@ -3,6 +3,7 @@ import requests
 from textblob import TextBlob
 import yfinance as yf
 import plotly.graph_objects as go
+import pandas as pd
 import os
 import warnings
 
@@ -11,6 +12,7 @@ warnings.filterwarnings("ignore")
 app = Flask(__name__)
 
 API_KEY="1a16f34fbcca4a848bf25537aaa49819"
+
 
 # ================= NEWS ================= #
 
@@ -25,9 +27,7 @@ def get_stock_news(company=""):
         "https://newsapi.org/v2/everything?"
         f"q={q}&"
         "domains=moneycontrol.com,economictimes.indiatimes.com,business-standard.com&"
-        "language=en&"
-        "sortBy=publishedAt&"
-        "pageSize=8&"
+        "language=en&sortBy=publishedAt&pageSize=8&"
         f"apiKey={API_KEY}"
     )
 
@@ -55,8 +55,7 @@ def get_mutual_fund_news():
     url=(
       "https://newsapi.org/v2/everything?"
       "q=mutual funds india OR SIP investing&"
-      "language=en&"
-      "pageSize=5&"
+      "language=en&pageSize=5&"
       f"apiKey={API_KEY}"
     )
 
@@ -136,6 +135,8 @@ def get_stock_data(symbol):
         return None
 
 
+# ================= SWOT ================= #
+
 def generate_swot(symbol):
 
     try:
@@ -181,6 +182,7 @@ def generate_swot(symbol):
         }
 
 
+# ================= ANALYSIS ================= #
 
 def analyze_stock(symbol):
 
@@ -198,6 +200,7 @@ def analyze_stock(symbol):
     loss=(-delta.clip(upper=0)).rolling(14).mean()
 
     rs=gain/loss
+
     df["RSI"]=100-(100/(1+rs))
 
     price=round(float(df["Close"].iloc[-1]),2)
@@ -211,30 +214,37 @@ def analyze_stock(symbol):
     if price>ema20>ema50:
         trend="Strong Bullish"
         score+=2
+
     elif price>ema20:
         trend="Bullish"
         score+=1
+
     else:
         trend="Bearish"
         score-=1
 
     if rsi<30:
         score+=2
+
     elif rsi>70:
         score-=2
 
     if score>=3:
         signal="📈 STRONG BUY"
+
     elif score>=1:
         signal="🟢 BUY"
+
     elif score<0:
         signal="🔴 SELL"
+
     else:
         signal="🟡 HOLD"
 
     return signal,score,price,rsi,trend,df
 
 
+# ================= TRADE LEVELS ================= #
 
 def trade_levels(df):
 
@@ -252,17 +262,96 @@ def trade_levels(df):
 
 
 
+# ================= FIXED SUPPORT RESISTANCE ================= #
+
 def support_resistance(df):
 
-    if df is None:
+    if df is None or len(df)<30:
         return [],[],None,None,"No Data"
 
-    demand=round(float(df["Low"].tail(20).min()),2)
-    supply=round(float(df["High"].tail(20).max()),2)
+    try:
 
-    return [],[],demand,supply,"Range Bound"
+        highs=df["High"].tolist()
+        lows=df["Low"].tolist()
+
+        supports=[]
+        resistances=[]
+
+        # Pivot detection
+        for i in range(2,len(df)-2):
+
+            if (
+                lows[i] < lows[i-1] and
+                lows[i] < lows[i-2] and
+                lows[i] < lows[i+1] and
+                lows[i] < lows[i+2]
+            ):
+                supports.append(round(lows[i],2))
 
 
+            if (
+                highs[i] > highs[i-1] and
+                highs[i] > highs[i-2] and
+                highs[i] > highs[i+1] and
+                highs[i] > highs[i+2]
+            ):
+                resistances.append(round(highs[i],2))
+
+
+        # remove close duplicates
+        def clean(levels):
+            cleaned=[]
+            for x in sorted(levels):
+                if not cleaned or abs(x-cleaned[-1])>x*0.01:
+                    cleaned.append(x)
+            return cleaned
+
+        supports=clean(supports)[-3:]
+        resistances=clean(resistances)[-3:]
+
+
+        if not supports:
+            supports=[
+                round(df["Low"].tail(20).quantile(.25),2)
+            ]
+
+        if not resistances:
+            resistances=[
+                round(df["High"].tail(20).quantile(.75),2)
+            ]
+
+
+        demand=round(min(supports),2)
+        supply=round(max(resistances),2)
+
+        current=float(df["Close"].iloc[-1])
+
+
+        if current>supply:
+            breakout="Bullish Breakout"
+
+        elif current<demand:
+            breakout="Bearish Breakdown"
+
+        else:
+            breakout="Range Bound"
+
+
+        return (
+            supports,
+            resistances,
+            demand,
+            supply,
+            breakout
+        )
+
+    except Exception as e:
+        print("SR Error:",e)
+        return [],[],None,None,"Neutral"
+
+
+
+# ================= CHART ================= #
 
 def generate_chart(df,support,resistance):
 
@@ -270,6 +359,7 @@ def generate_chart(df,support,resistance):
         return ""
 
     try:
+
         fig=go.Figure()
 
         fig.add_trace(
@@ -278,9 +368,42 @@ def generate_chart(df,support,resistance):
                 open=df["Open"],
                 high=df["High"],
                 low=df["Low"],
-                close=df["Close"]
+                close=df["Close"],
+                name="Price"
             )
         )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["EMA20"],
+                name="EMA20"
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["EMA50"],
+                name="EMA50"
+            )
+        )
+
+
+        for s in support:
+            fig.add_hline(
+                y=s,
+                line_dash="dot",
+                annotation_text=f"S {s}"
+            )
+
+        for r in resistance:
+            fig.add_hline(
+                y=r,
+                line_dash="dot",
+                annotation_text=f"R {r}"
+            )
+
 
         fig.update_layout(
             template="plotly_dark",
@@ -297,7 +420,7 @@ def generate_chart(df,support,resistance):
         return ""
 
 
-# ================= MUTUAL FUND ENGINE ================= #
+# ================= MUTUAL FUNDS ================= #
 
 FUND_MAP={
 "HDFC FLEXI CAP FUND":"^NSEI",
@@ -310,17 +433,11 @@ FUND_MAP={
 
 def map_fund_symbol(name):
 
-    name=name.upper().strip()
+    name=name.upper()
 
     for fund,symbol in FUND_MAP.items():
         if name in fund:
             return symbol
-
-    if "SBI" in name:
-        return "SBIN.NS"
-
-    if "ICICI" in name:
-        return "ICICIBANK.NS"
 
     return "^NSEI"
 
@@ -335,19 +452,14 @@ def analyze_mutual_fund(name):
         df=yf.download(
             symbol,
             period="1y",
-            interval="1d",
-            auto_adjust=True,
-            progress=False
+            progress=False,
+            auto_adjust=True
         )
 
         nav=round(float(df["Close"].iloc[-1]),2)
-
         past=float(df["Close"].iloc[0])
 
-        ret=round(
-            ((nav-past)/past)*100,
-            2
-        )
+        ret=round(((nav-past)/past)*100,2)
 
         if ret>20:
             rating="★★★★★"
@@ -355,12 +467,9 @@ def analyze_mutual_fund(name):
         elif ret>12:
             rating="★★★★"
             signal="Good SIP Candidate"
-        elif ret>5:
+        else:
             rating="★★★"
             signal="Moderate"
-        else:
-            rating="★★"
-            signal="Weak"
 
         return{
             "rating":rating,
@@ -376,7 +485,7 @@ def analyze_mutual_fund(name):
             "risk":"Medium",
             "return_1y":14.8,
             "fund_signal":"Good SIP Candidate",
-            "nav":102.4
+            "nav":102
         }
 
 
@@ -389,84 +498,137 @@ def generate_mutual_fund_chart(name):
 
         df=yf.download(
             symbol,
-            period="5y",
-            interval="1wk",
+            period="10y",
+            interval="1mo",
             auto_adjust=True,
             progress=False
         )
 
+        if df.empty:
+            return "",{}, "Neutral"
+
         if hasattr(df.columns,"levels"):
             df.columns=df.columns.get_level_values(0)
 
-        df["EMA50"]=df["Close"].ewm(span=50).mean()
-        df["EMA100"]=df["Close"].ewm(span=100).mean()
+        df=df.dropna().reset_index()
 
-        price=float(df["Close"].iloc[-1])
+        df["Date"]=pd.to_datetime(df["Date"])
 
-        if price>df["EMA50"].iloc[-1]:
-            buy_signal="🟢 STRONG BUY"
-        else:
-            buy_signal="🟡 HOLD"
+        df["EMA12"]=df["Close"].ewm(
+            span=12
+        ).mean()
 
-        yearly={}
-        yr=df.index[-1].year
+        df["EMA24"]=df["Close"].ewm(
+            span=24
+        ).mean()
 
-        for i in range(1,6):
 
-            y=yr-i
+        yearly_returns={}
 
-            yd=df[df.index.year==y]
+        years=sorted(
+            list(
+              set(df["Date"].dt.year)
+            )
+        )
+
+
+        for y in years[-10:]:
+
+            yd=df[
+             df["Date"].dt.year==y
+            ]
 
             if len(yd)>1:
-                start=float(yd["Close"].iloc[0])
-                end=float(yd["Close"].iloc[-1])
 
-                yearly[str(y)]=round(
-                    ((end-start)/start)*100,
-                    2
+                s=float(
+                  yd["Close"].iloc[0]
                 )
+
+                e=float(
+                  yd["Close"].iloc[-1]
+                )
+
+                yearly_returns[
+                    str(y)
+                ]=round(
+                  ((e-s)/s)*100,
+                  2
+                )
+
+
+        start=float(
+            df["Close"].iloc[0]
+        )
+
+        end=float(
+            df["Close"].iloc[-1]
+        )
+
+        cagr=((end/start)**(1/10)-1)*100
+
+
+        if cagr>14:
+            buy_signal="🟢 Strong Long-Term Buy"
+
+        elif cagr>10:
+            buy_signal="🟡 Good SIP Candidate"
+
+        else:
+            buy_signal="⚪ Moderate"
+
 
         fig=go.Figure()
 
         fig.add_trace(
             go.Scatter(
-                x=df.index,
+                x=df["Date"],
                 y=df["Close"],
-                name="Fund NAV"
+                name="NAV"
             )
         )
 
         fig.add_trace(
             go.Scatter(
-                x=df.index,
-                y=df["EMA50"],
-                name="EMA50"
+                x=df["Date"],
+                y=df["EMA12"],
+                name="1Y Trend"
             )
         )
 
         fig.add_trace(
             go.Scatter(
-                x=df.index,
-                y=df["EMA100"],
-                name="EMA100"
+                x=df["Date"],
+                y=df["EMA24"],
+                name="2Y Trend"
             )
         )
+
 
         fig.update_layout(
+            title="10-Year Mutual Fund Growth",
             template="plotly_dark",
-            height=550
+            height=650,
+            hovermode="x unified",
+            xaxis_rangeslider_visible=False
         )
+
 
         return(
             fig.to_html(
-                full_html=False,
-                include_plotlyjs="cdn"
+               full_html=False,
+               include_plotlyjs="cdn"
             ),
-            yearly,
+            yearly_returns,
             buy_signal
         )
 
-    except:
+    except Exception as e:
+
+        print(
+         "MF Chart Error:",
+         e
+        )
+
         return "",{}, "Neutral"
 
 
@@ -485,7 +647,10 @@ def dashboard():
 @app.route("/stocks")
 def stocks():
 
-    search=request.args.get("search","TCS").upper().strip()
+    search=request.args.get(
+        "search",
+        "TCS"
+    ).upper().strip()
 
     symbol=get_stock_symbol(search)
 
@@ -511,9 +676,14 @@ def stocks():
 
     entry,sl,target=trade_levels(df)
 
-    support,resistance,demand_block,supply_block,breakout=(
-        support_resistance(df)
-    )
+    (
+        support,
+        resistance,
+        demand_block,
+        supply_block,
+        breakout
+    )=support_resistance(df)
+
 
     swot=generate_swot(symbol)
 
@@ -524,28 +694,27 @@ def stocks():
     )
 
     return render_template(
-        "stocks.html",
-        symbol=search,
-        news=news,
-        alerts=alerts,
-        prediction=prediction,
-        stock_signal=prediction,
-        confidence=confidence,
-        price=price,
-        rsi=rsi,
-        trend=trend,
-        entry=entry,
-        sl=sl,
-        target=target,
-        support=support,
-        resistance=resistance,
-        demand_block=demand_block,
-        supply_block=supply_block,
-        breakout=breakout,
-        swot=swot,
-        chart_html=chart_html
-    )
-
+    "stocks.html",
+    symbol=search,
+    news=news,
+    alerts=alerts,
+    prediction=prediction,
+    stock_signal=prediction,
+    confidence=confidence,
+    price=price,
+    rsi=rsi,
+    trend=trend,
+    entry=entry,
+    sl=sl,
+    target=target,
+    support=support,
+    resistance=resistance,
+    demand_block=demand_block,
+    supply_block=supply_block,
+    breakout=breakout,
+    swot=swot,
+    chart_html=chart_html
+)
 
 @app.route("/mutual-funds")
 def mutual_funds():
@@ -555,9 +724,7 @@ def mutual_funds():
         "HDFC Flexi Cap Fund"
     )
 
-    mf_data=analyze_mutual_fund(
-        fund_search
-    )
+    mf_data=analyze_mutual_fund(fund_search)
 
     mf_news=get_mutual_fund_news()
 
@@ -579,7 +746,10 @@ def mutual_funds():
 
 
 if __name__=="__main__":
-    port=int(os.environ.get("PORT",5000))
+
+    port=int(
+        os.environ.get("PORT",5000)
+    )
 
     app.run(
         host="0.0.0.0",
