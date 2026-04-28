@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Intraday Scanner</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background:#0b1018;
+color:white;
+font-family:Segoe UI;
+}
+
+.navbar{
+position:sticky;
+top:0;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:18px 30px;
+background:#101722;
+border-bottom:1px solid #1e2d3a;
+z-index:999;
+}
+
+.logo{
+display:flex;
+gap:12px;
+align-items:center;
+}
+
+.circle{
+width:46px;
+height:46px;
+border-radius:50%;
+background:linear-gradient(135deg,#00ffd0,#4d7cff);
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:22px;
+font-weight:900;
+color:#08131f;
+}
+
+.logo h2{
+color:#00ffd0;
+}
+
+.back{
+background:#172332;
+padding:10px 18px;
+border-radius:30px;
+text-decoration:none;
+color:#00ffd0;
+font-weight:700;
+}
+
+.wrapper{
+max-width:1450px;
+margin:auto;
+padding:25px;
+}
+
+.card{
+background:#121b27;
+padding:30px;
+border-radius:26px;
+margin-bottom:28px;
+border:1px solid #1d2a36;
+}
+
+h1{
+font-size:34px;
+margin-bottom:20px;
+}
+
+form{
+display:flex;
+gap:14px;
+flex-wrap:wrap;
+}
+
+input{
+flex:1;
+min-width:260px;
+padding:16px;
+border:none;
+outline:none;
+border-radius:15px;
+background:#17222f;
+color:white;
+font-size:17px;
+}
+
+button{
+padding:16px 28px;
+border:none;
+background:#00ffd0;
+font-weight:800;
+border-radius:14px;
+cursor:pointer;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:18px;
+margin-top:25px;
+}
+
+.box{
+background:#17222f;
+padding:26px;
+border-radius:20px;
+text-align:center;
+}
+
+.box h3{
+opacity:.75;
+margin-bottom:10px;
+}
+
+.box h2{
+font-size:30px;
+}
+
+.buy{
+margin-top:22px;
+font-size:30px;
+font-weight:900;
+}
+
+.buy.buy{
+color:#00ff88;
+}
+
+.buy.sell{
+color:#ff5252;
+}
+
+.signal{
+margin-top:18px;
+padding:16px;
+background:#17222f;
+border-radius:16px;
+font-size:21px;
+font-weight:700;
+}
+
+.level-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:18px;
+margin-top:25px;
+}
+
+.level-box{
+background:#17222f;
+padding:25px;
+border-radius:18px;
+text-align:center;
+}
+
+.level-box h4{
+color:#00ffd0;
+margin-bottom:10px;
+}
+
+.level-box h2{
+font-size:30px;
+}
+
+.chart{
+background:#091421;
+padding:20px;
+border-radius:22px;
+overflow:auto;
+min-height:600px;
+}
+
+.conf-wrap{
+margin-top:25px;
+background:#17222f;
+padding:25px;
+border-radius:20px;
+}
+
+.bar{
+height:28px;
+border-radius:40px;
+background:#243445;
+overflow:hidden;
+margin-top:16px;
+}
+
+.fill{
+height:100%;
+width:{{data.confidence}}%;
+background:linear-gradient(90deg,#ff4d4d,#ffb84d,#00ff88);
+border-radius:40px;
+}
+
+.conf-num{
+margin-top:12px;
+font-size:28px;
+font-weight:900;
+color:#00ffd0;
+text-align:center;
+}
+
+@media(max-width:1000px){
+.grid,.level-grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
+@media(max-width:700px){
+.grid,.level-grid{
+grid-template-columns:1fr;
+}
+form{
+flex-direction:column;
+}
+button{
+width:100%;
+}
+}
+</style>
+</head>
+<body>
+
+
+<div class="navbar">
+<div class="logo">
+<div class="circle">AI</div>
+<h2>Intraday Scanner</h2>
+</div>
+
+<a href="/" class="back">
+⬅ Dashboard
+</a>
+</div>
+
+
+<div class="wrapper">
+
+
+<div class="card">
+
+<h1>⚡ Intraday AI Scanner</h1>
+
+<form>
+<input
+name="stock"
+value="{{stock}}"
+placeholder="TCS / RELIANCE">
+
+<button>
+Scan Trade
+</button>
+
+</form>
+
+
+
+<div class="grid">
+
+<div class="box">
+<h3>Current Price</h3>
+<h2>₹{{data.price}}</h2>
+</div>
+
+<div class="box">
+<h3>RSI</h3>
+<h2>{{data.rsi}}</h2>
+</div>
+
+<div class="box">
+<h3>Volume Surge</h3>
+<h2>{{data.volume_ratio}}x</h2>
+</div>
+
+<div class="box">
+<h3>Trend</h3>
+<h2>{{data.trend}}</h2>
+</div>
+
+</div>
+
+
+<div class="buy">
+{{data.signal}}
+</div>
+
+<div class="signal">
+AI Intraday Signal:
+{{data.signal}}
+</div>
+
+
+<div class="conf-wrap">
+<h2>🤖 AI Confidence Meter</h2>
+
+<div class="bar">
+<div class="fill"></div>
+</div>
+
+<div class="conf-num">
+{{data.confidence}} /100
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h1>🎯 Intraday Trade Levels</h1>
+
+<div class="level-grid">
+
+<div class="level-box">
+<h4>Entry</h4>
+<h2>₹{{data.entry}}</h2>
+</div>
+
+<div class="level-box">
+<h4>Stop Loss</h4>
+<h2>₹{{data.sl}}</h2>
+</div>
+
+<div class="level-box">
+<h4>Target</h4>
+<h2>₹{{data.target}}</h2>
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h1>📈 Live Intraday Chart</h1>
+
+<div class="chart">
+{{ chart_html|safe }}
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2 style="margin-bottom:25px;">
+🧠 AI Trade Logic
+</h2>
+
+<div class="grid">
+
+<div class="box">
+<h3>EMA Setup</h3>
+
+<h2>
+{{ data.ai_logic.ema_setup
+if data and data.ai_logic
+else "No Data" }}
+</h2>
+
+</div>
+
+
+<div class="box">
+<h3>Momentum</h3>
+
+<h2>
+{{ data.ai_logic.momentum
+if data and data.ai_logic
+else "No Data" }}
+</h2>
+
+</div>
+
+
+<div class="box">
+<h3>Breakout</h3>
+
+<h2>
+{{ data.ai_logic.breakout
+if data and data.ai_logic
+else "No Data" }}
+</h2>
+
+</div>
+
+
+<div class="box">
+<h3>Risk Score</h3>
+
+<h2>
+{{ data.ai_logic.risk
+if data and data.ai_logic
+else "No Data" }}
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+</div>
+
+</body>
+</html>

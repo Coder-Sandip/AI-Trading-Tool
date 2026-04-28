@@ -521,16 +521,25 @@ Analyze
 </div>
 
 
-<div class="card">
 <h3>AI Confidence</h3>
 
-<div class="bar">
-<div class="fill"
-style="width:{{[((confidence|default(0)+5)*10),100]|min}}%">
-</div>
+<div style="
+background:#1d2734;
+height:18px;
+border-radius:30px;
+overflow:hidden;
+margin-top:15px;">
+
+<div style="width: {{ confidence }}%;
+height:18px;
+background:linear-gradient(90deg,#00ffd0,#4d7cff);">
 </div>
 
 </div>
+
+<h2 style="margin-top:15px;">
+{{ confidence }}%
+</h2>
 
 
 <div class="card">
